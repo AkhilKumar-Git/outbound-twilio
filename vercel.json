@@ -23,8 +23,11 @@
       "dest": "/outbound.js",
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-        "Access-Control-Allow-Headers": "*"
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS,UPGRADE",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Credentials": "true",
+        "Upgrade": "$http_upgrade",
+        "Connection": "$connection_upgrade"
       }
     },
     {
@@ -38,8 +41,11 @@
       "dest": "/index.js",
       "headers": {
         "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-        "Access-Control-Allow-Headers": "*"
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS,UPGRADE",
+        "Access-Control-Allow-Headers": "*",
+        "Access-Control-Allow-Credentials": "true",
+        "Upgrade": "$http_upgrade",
+        "Connection": "$connection_upgrade"
       }
     },
     {

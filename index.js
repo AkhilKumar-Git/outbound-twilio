@@ -18,13 +18,51 @@ if (!ELEVENLABS_AGENT_ID || !ELEVENLABS_API_KEY) {
 }
 
 // Initialize Fastify server
-const app = Fastify({ logger: true });
+const app = Fastify({
+  logger: true,
+  disableRequestLogging: true,
+  ignoreTrailingSlash: true
+});
+
+// Add CORS support
+app.addHook('onRequest', async (request, reply) => {
+  reply.header('Access-Control-Allow-Origin', '*');
+  reply.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS,UPGRADE');
+  reply.header('Access-Control-Allow-Headers', '*');
+  reply.header('Access-Control-Allow-Credentials', 'true');
+  
+  if (request.method === 'OPTIONS') {
+    reply.status(204).send();
+    return;
+  }
+});
+
+// Register plugins
 app.register(fastifyFormBody);
-app.register(fastifyWs);
+app.register(fastifyWs, {
+  options: {
+    clientTracking: true,
+    verifyClient: (info, cb) => {
+      cb(true); // Accept all connections for now
+    }
+  }
+});
 
 // Export the app instance for serverless use
 export default async (req, res) => {
   await app.ready();
+  if (req.method === 'GET' && req.headers.upgrade?.toLowerCase() === 'websocket') {
+    const upgrade = await app.inject({
+      method: 'GET',
+      url: req.url,
+      headers: req.headers
+    });
+    if (upgrade.statusCode === 101) {
+      res.writeHead(101, upgrade.headers);
+      res.end();
+      return;
+    }
+  }
   app.server.emit('request', req, res);
 };
 
