@@ -37,32 +37,49 @@ app.addHook('onRequest', async (request, reply) => {
   }
 });
 
-// Register plugins
-app.register(fastifyFormBody);
-app.register(fastifyWs, {
-  options: {
-    clientTracking: true,
-    verifyClient: (info, cb) => {
-      cb(true); // Accept all connections for now
+// Register plugins only if not in Vercel environment
+if (!process.env.VERCEL) {
+  app.register(fastifyFormBody);
+  app.register(fastifyWs, {
+    options: {
+      clientTracking: true,
+      verifyClient: (info, cb) => {
+        cb(true); // Accept all connections for now
+      }
     }
-  }
-});
+  });
 
-// Export the app instance for serverless use
-export default async (req, res) => {
-  await app.ready();
-  if (req.method === 'GET' && req.headers.upgrade?.toLowerCase() === 'websocket') {
-    const upgrade = await app.inject({
-      method: 'GET',
-      url: req.url,
-      headers: req.headers
+  // WebSocket route for handling media streams
+  app.register(async function (instance) {
+    instance.get("/media-stream", { websocket: true }, (ws, req) => {
+      console.info("[Server] Twilio connected to media stream");
+      // ... rest of your WebSocket handling code ...
     });
-    if (upgrade.statusCode === 101) {
-      res.writeHead(101, upgrade.headers);
-      res.end();
+  });
+} else {
+  // In Vercel environment, use a simpler setup
+  app.register(fastifyFormBody);
+}
+
+// Export both the app and the serverless handler
+export const fastifyApp = app;
+
+// Serverless function for Vercel
+export default async (req, res) => {
+  if (process.env.VERCEL) {
+    // In Vercel, handle WebSocket upgrade requests differently
+    if (req.method === 'GET' && req.headers.upgrade?.toLowerCase() === 'websocket') {
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+      });
+      res.end(JSON.stringify({ 
+        message: 'WebSocket connections are not supported in serverless mode. Please use the HTTP endpoints instead.'
+      }));
       return;
     }
   }
+
+  await app.ready();
   app.server.emit('request', req, res);
 };
 

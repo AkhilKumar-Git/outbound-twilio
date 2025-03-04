@@ -33,6 +33,7 @@
   "rewrites": [
     { "source": "/outbound-call", "destination": "/outbound.js" },
     { "source": "/outbound-call-twiml", "destination": "/outbound.js" },
+    { "source": "/process-speech", "destination": "/outbound.js" },
     { "source": "/outbound-media-stream", "destination": "/outbound.js" },
     { "source": "/twilio/inbound_call", "destination": "/index.js" },
     { "source": "/media-stream", "destination": "/index.js" },

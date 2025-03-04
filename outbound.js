@@ -150,17 +150,77 @@ app.all("/outbound-call-twiml", async (request, reply) => {
 
   // Ensure we use the Vercel deployment URL
   const vercelUrl = process.env.VERCEL_URL || request.headers.host;
-  const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
-      <Response>
-        <Connect>
-          <Stream url="wss://${vercelUrl}/outbound-media-stream">
-            <Parameter name="prompt" value="${prompt}" />
-            <Parameter name="first_message" value="${first_message}" />
-          </Stream>
-        </Connect>
-      </Response>`;
+  const isVercel = !!process.env.VERCEL;
+
+  // Use different TwiML for Vercel vs local development
+  const twimlResponse = isVercel 
+    ? `<?xml version="1.0" encoding="UTF-8"?>
+        <Response>
+          <Say>Using HTTP mode for Vercel deployment</Say>
+          <Gather input="speech" timeout="5" action="/process-speech">
+            <Say>${first_message}</Say>
+          </Gather>
+        </Response>`
+    : `<?xml version="1.0" encoding="UTF-8"?>
+        <Response>
+          <Connect>
+            <Stream url="wss://${vercelUrl}/outbound-media-stream">
+              <Parameter name="prompt" value="${prompt}" />
+              <Parameter name="first_message" value="${first_message}" />
+            </Stream>
+          </Connect>
+        </Response>`;
 
   reply.type("text/xml").send(twimlResponse);
+});
+
+// Speech processing endpoint for Vercel deployment
+app.post("/process-speech", async (request, reply) => {
+  const speechResult = request.body.SpeechResult;
+  
+  try {
+    // Get ElevenLabs response
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_AGENT_ID}`,
+      {
+        method: "POST",
+        headers: {
+          "xi-api-key": ELEVENLABS_API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          text: speechResult,
+          model_id: "eleven_monolingual_v1",
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.75,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`ElevenLabs API error: ${response.statusText}`);
+    }
+
+    const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
+      <Response>
+        <Play>${response.url}</Play>
+        <Gather input="speech" timeout="5" action="/process-speech">
+          <Say>Please continue...</Say>
+        </Gather>
+      </Response>`;
+
+    reply.type("text/xml").send(twimlResponse);
+  } catch (error) {
+    console.error("Error processing speech:", error);
+    const errorResponse = `<?xml version="1.0" encoding="UTF-8"?>
+      <Response>
+        <Say>Sorry, there was an error processing your request.</Say>
+        <Hangup/>
+      </Response>`;
+    reply.type("text/xml").send(errorResponse);
+  }
 });
 
 // WebSocket route for handling media streams
