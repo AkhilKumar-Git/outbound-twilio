@@ -244,12 +244,3 @@ app.register(async fastifyInstance => {
     });
   });
 });
-
-// Start the Fastify server
-fastify.listen({ port: PORT }, err => {
-  if (err) {
-    console.error("Error starting server:", err);
-    process.exit(1);
-  }
-  console.log(`[Server] Listening on port ${PORT}`);
-});
