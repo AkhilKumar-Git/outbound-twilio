@@ -29,14 +29,18 @@ if (
 }
 
 // Initialize Fastify server
-const fastify = Fastify();
-fastify.register(fastifyFormBody);
-fastify.register(fastifyWs);
+const app = Fastify({ logger: true });
+app.register(fastifyFormBody);
+app.register(fastifyWs);
 
-const PORT = process.env.PORT || 8000;
+// Export the app instance for serverless use
+export default async (req, res) => {
+  await app.ready();
+  app.server.emit('request', req, res);
+};
 
 // Root route for health check
-fastify.get("/", async (_, reply) => {
+app.get("/", async (_, reply) => {
   reply.send({ message: "Server is running" });
 });
 
@@ -69,7 +73,7 @@ async function getSignedUrl() {
 }
 
 // Route to initiate outbound calls
-fastify.post("/outbound-call", async (request, reply) => {
+app.post("/outbound-call", async (request, reply) => {
   const { number, prompt, first_message } = request.body;
 
   if (!number) {
@@ -102,7 +106,7 @@ fastify.post("/outbound-call", async (request, reply) => {
 });
 
 // TwiML route for outbound calls
-fastify.all("/outbound-call-twiml", async (request, reply) => {
+app.all("/outbound-call-twiml", async (request, reply) => {
   const prompt = request.query.prompt || "";
   const first_message = request.query.first_message || "";
 
@@ -120,7 +124,7 @@ fastify.all("/outbound-call-twiml", async (request, reply) => {
 });
 
 // WebSocket route for handling media streams
-fastify.register(async fastifyInstance => {
+app.register(async fastifyInstance => {
   fastifyInstance.get(
     "/outbound-media-stream",
     { websocket: true },

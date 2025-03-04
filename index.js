@@ -18,19 +18,23 @@ if (!ELEVENLABS_AGENT_ID || !ELEVENLABS_API_KEY) {
 }
 
 // Initialize Fastify server
-const fastify = Fastify();
-fastify.register(fastifyFormBody);
-fastify.register(fastifyWs);
+const app = Fastify({ logger: true });
+app.register(fastifyFormBody);
+app.register(fastifyWs);
 
-const PORT = process.env.PORT || 8000;
+// Export the app instance for serverless use
+export default async (req, res) => {
+  await app.ready();
+  app.server.emit('request', req, res);
+};
 
 // Root route for health check
-fastify.get("/", async (_, reply) => {
+app.get("/", async (_, reply) => {
   reply.send({ message: "Server is running" });
 });
 
 // Route to handle incoming calls from Twilio
-fastify.all("/twilio/inbound_call", async (request, reply) => {
+app.all("/twilio/inbound_call", async (request, reply) => {
   // Generate TwiML response to connect the call to a WebSocket stream
   const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
     <Response>
@@ -68,7 +72,7 @@ async function getSignedUrl() {
 }
 
 // WebSocket route for handling media streams
-fastify.register(async fastifyInstance => {
+app.register(async fastifyInstance => {
   fastifyInstance.get("/media-stream", { websocket: true }, (ws, req) => {
     console.info("[Server] Twilio connected to media stream");
 

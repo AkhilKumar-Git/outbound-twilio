@@ -19,8 +19,13 @@
     },
     {
       "src": "/outbound-media-stream",
-      "methods": ["GET", "POST"],
-      "dest": "/outbound.js"
+      "methods": ["GET", "POST", "OPTIONS"],
+      "dest": "/outbound.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "Access-Control-Allow-Headers": "*"
+      }
     },
     {
       "src": "/twilio/inbound_call",
@@ -29,7 +34,13 @@
     },
     {
       "src": "/media-stream",
-      "dest": "/index.js"
+      "methods": ["GET", "POST", "OPTIONS"],
+      "dest": "/index.js",
+      "headers": {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "Access-Control-Allow-Headers": "*"
+      }
     },
     {
       "src": "/",
