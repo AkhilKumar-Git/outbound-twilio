@@ -124,8 +124,8 @@ app.all("/outbound-call-twiml", async (request, reply) => {
 });
 
 // WebSocket route for handling media streams
-app.register(async fastifyInstance => {
-  fastifyInstance.get(
+app.register(async function (instance) {
+  instance.get(
     "/outbound-media-stream",
     { websocket: true },
     (ws, req) => {

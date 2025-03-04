@@ -72,8 +72,8 @@ async function getSignedUrl() {
 }
 
 // WebSocket route for handling media streams
-app.register(async fastifyInstance => {
-  fastifyInstance.get("/media-stream", { websocket: true }, (ws, req) => {
+app.register(async function (instance) {
+  instance.get("/media-stream", { websocket: true }, (ws, req) => {
     console.info("[Server] Twilio connected to media stream");
 
     // Variables to track the call
