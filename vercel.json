@@ -8,60 +8,34 @@
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/outbound-media-stream",
       "headers": [
-        {
-          "key": "Access-Control-Allow-Origin",
-          "value": "https://*.twilio.com https://*.twiliocdn.com"
-        }
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS,UPGRADE" },
+        { "key": "Access-Control-Allow-Headers", "value": "*" },
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Upgrade", "value": "$http_upgrade" },
+        { "key": "Connection", "value": "$connection_upgrade" }
+      ]
+    },
+    {
+      "source": "/media-stream",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,POST,OPTIONS,UPGRADE" },
+        { "key": "Access-Control-Allow-Headers", "value": "*" },
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Upgrade", "value": "$http_upgrade" },
+        { "key": "Connection", "value": "$connection_upgrade" }
       ]
     }
   ],
-  "routes": [
-    {
-      "src": "/outbound-call",
-      "methods": ["POST"],
-      "dest": "/outbound.js"
-    },
-    {
-      "src": "/outbound-call-twiml",
-      "methods": ["GET", "POST"],
-      "dest": "/outbound.js"
-    },
-    {
-      "src": "/outbound-media-stream",
-      "methods": ["GET", "POST", "OPTIONS"],
-      "dest": "/outbound.js",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET,POST,OPTIONS,UPGRADE",
-        "Access-Control-Allow-Headers": "*",
-        "Access-Control-Allow-Credentials": "true",
-        "Upgrade": "$http_upgrade",
-        "Connection": "$connection_upgrade"
-      }
-    },
-    {
-      "src": "/twilio/inbound_call",
-      "methods": ["GET", "POST"],
-      "dest": "/index.js"
-    },
-    {
-      "src": "/media-stream",
-      "methods": ["GET", "POST", "OPTIONS"],
-      "dest": "/index.js",
-      "headers": {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET,POST,OPTIONS,UPGRADE",
-        "Access-Control-Allow-Headers": "*",
-        "Access-Control-Allow-Credentials": "true",
-        "Upgrade": "$http_upgrade",
-        "Connection": "$connection_upgrade"
-      }
-    },
-    {
-      "src": "/",
-      "dest": "/index.js"
-    }
+  "rewrites": [
+    { "source": "/outbound-call", "destination": "/outbound.js" },
+    { "source": "/outbound-call-twiml", "destination": "/outbound.js" },
+    { "source": "/outbound-media-stream", "destination": "/outbound.js" },
+    { "source": "/twilio/inbound_call", "destination": "/index.js" },
+    { "source": "/media-stream", "destination": "/index.js" },
+    { "source": "/", "destination": "/index.js" }
   ]
 }
