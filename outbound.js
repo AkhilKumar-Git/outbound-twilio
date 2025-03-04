@@ -156,7 +156,7 @@ app.all("/outbound-call-twiml", async (request, reply) => {
   const twimlResponse = isVercel 
     ? `<?xml version="1.0" encoding="UTF-8"?>
         <Response>
-          <Say>Using HTTP mode for Vercel deployment</Say>
+          <Say>Hello</Say>
           <Gather input="speech" timeout="5" action="/process-speech">
             <Say>${first_message}</Say>
           </Gather>
@@ -179,9 +179,9 @@ app.post("/process-speech", async (request, reply) => {
   const speechResult = request.body.SpeechResult;
   
   try {
-    // Get ElevenLabs response
+    // Get ElevenLabs response using the conversation API
     const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${ELEVENLABS_AGENT_ID}`,
+      `https://api.elevenlabs.io/v1/convai/conversation/text`,
       {
         method: "POST",
         headers: {
@@ -189,12 +189,10 @@ app.post("/process-speech", async (request, reply) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          text: speechResult,
-          model_id: "eleven_monolingual_v1",
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.75,
-          },
+          agent_id: ELEVENLABS_AGENT_ID,
+          user_input: speechResult,
+          conversation_history: [], // You might want to store and pass conversation history
+          audio_format: "mp3_44100_128"
         }),
       }
     );
@@ -203,10 +201,16 @@ app.post("/process-speech", async (request, reply) => {
       throw new Error(`ElevenLabs API error: ${response.statusText}`);
     }
 
+    const data = await response.json();
+    
+    if (!data.audio_url) {
+      throw new Error('No audio URL in response');
+    }
+
     const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
       <Response>
-        <Play>${response.url}</Play>
-        <Gather input="speech" timeout="5" action="/process-speech">
+        <Play>${data.audio_url}</Play>
+to        <Gather input="speech" timeout="5" action="/process-speech">
           <Say>Please continue...</Say>
         </Gather>
       </Response>`;
