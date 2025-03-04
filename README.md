@@ -28,10 +28,15 @@ npm install
 node index.js
 ```
 
+4. In a new terminal, use ngrok to create a public URL:
+
+```bash
+ngrok http --url=<your-static-url> 8000
+```
 
 5. Configure your Twilio webhook:
    - Go to your Twilio Phone Number settings
-   - Set the webhook URL for incoming calls to: `{your-vercel-url}/twilio/inbound_call`
+   - Set the webhook URL for incoming calls to: `{your-ngrok-url}/twilio/inbound_call`
    - Make sure the HTTP method is set to POST
 
 ## Testing
@@ -43,16 +48,16 @@ node index.js
 ### Outbound Call
 
 1. Start the server: `node outbound.js`
-<!-- 1. `ngrok http --url=<your-static-url> 8000` -->
+1. `ngrok http --url=<your-static-url> 8000`
 1. Make a request to the `/outbound-call` endpoint with the prompt you want to use:
 
 ```bash
-curl -X POST <vercel-app-url>/outbound-call \
+curl -X POST https://5846-49-206-42-168.ngrok-free.app/outbound-call \
 -H "Content-Type: application/json" \
 -d '{
    "prompt": "You are Ria, a professional and empathetic AI Voice Agent for Revolt Motors. Your core objectives are: Make the caller feel comfortable and valued. Provide accurate information about Revolt Motors’ bikes and services, using the FAQ knowledge base. Guide callers toward booking a test drive or receiving service, without being overly pushy. Only answer using official data from the knowledge base to avoid hallucinating. If uncertain, politely offer to connect them with a human agent or direct them to official contact details.",
-   "first_message": "<agent-first-message>",
-   "number": "<your-phone-number>"
+   "first_message": "Hello Hi",
+   "number": "+919582025588"
    }'
 ```
 
@@ -69,9 +74,4 @@ For detailed setup instructions and troubleshooting, please refer to the [offici
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.# outbound-twilio
-# outbound-twilio
-# outbound-twilio
-# outbound-twilio
-# outbound-twilio
-# outbound-twilio
+This project is licensed under the MIT License - see the LICENSE file for details.

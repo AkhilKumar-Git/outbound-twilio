@@ -4,8 +4,12 @@
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "node outbound.js",
-        "dev": "node outbound.js"
+        "start": "node index.js",
+        "start:outbound": "node outbound.js",
+        "build": "echo 'Build step completed'",
+        "vercel-build": "echo 'Build step completed'",
+        "dev": "node index.js",
+        "dev:outbound": "node outbound.js"
     },
     "author": "ElevenLabs",
     "license": "ISC",

@@ -8,15 +8,13 @@
   ],
   "routes": [
     {
-      "src": "/media-stream",
-      "dest": "/index.js"
-    },
-    {
       "src": "/outbound-call",
+      "methods": ["POST"],
       "dest": "/outbound.js"
     },
     {
       "src": "/outbound-call-twiml",
+      "methods": ["GET", "POST"],
       "dest": "/outbound.js"
     },
     {
@@ -24,7 +22,16 @@
       "dest": "/outbound.js"
     },
     {
-      "src": "/(.*)",
+      "src": "/twilio/inbound_call",
+      "methods": ["GET", "POST"],
+      "dest": "/index.js"
+    },
+    {
+      "src": "/media-stream",
+      "dest": "/index.js"
+    },
+    {
+      "src": "/",
       "dest": "/index.js"
     }
   ]
