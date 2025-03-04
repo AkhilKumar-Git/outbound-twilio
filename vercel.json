@@ -6,6 +6,17 @@
       "use": "@vercel/node"
     }
   ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://*.twilio.com https://*.twiliocdn.com"
+        }
+      ]
+    }
+  ],
   "routes": [
     {
       "src": "/outbound-call",

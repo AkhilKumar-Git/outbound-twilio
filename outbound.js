@@ -148,10 +148,12 @@ app.all("/outbound-call-twiml", async (request, reply) => {
   const prompt = request.query.prompt || "";
   const first_message = request.query.first_message || "";
 
+  // Ensure we use the Vercel deployment URL
+  const vercelUrl = process.env.VERCEL_URL || request.headers.host;
   const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
       <Response>
         <Connect>
-          <Stream url="wss://${request.headers.host}/outbound-media-stream">
+          <Stream url="wss://${vercelUrl}/outbound-media-stream">
             <Parameter name="prompt" value="${prompt}" />
             <Parameter name="first_message" value="${first_message}" />
           </Stream>

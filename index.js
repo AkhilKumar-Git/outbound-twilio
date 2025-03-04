@@ -74,10 +74,12 @@ app.get("/", async (_, reply) => {
 // Route to handle incoming calls from Twilio
 app.all("/twilio/inbound_call", async (request, reply) => {
   // Generate TwiML response to connect the call to a WebSocket stream
+  // Ensure we use the Vercel deployment URL
+  const vercelUrl = process.env.VERCEL_URL || request.headers.host;
   const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
     <Response>
       <Connect>
-        <Stream url="wss://${request.headers.host}/media-stream" />
+        <Stream url="wss://${vercelUrl}/media-stream" />
       </Connect>
     </Response>`;
 
