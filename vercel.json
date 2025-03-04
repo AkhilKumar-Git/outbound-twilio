@@ -19,6 +19,7 @@
     },
     {
       "src": "/outbound-media-stream",
+      "methods": ["GET", "POST"],
       "dest": "/outbound.js"
     },
     {
