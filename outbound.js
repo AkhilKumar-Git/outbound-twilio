@@ -179,38 +179,74 @@ app.post("/process-speech", async (request, reply) => {
   const speechResult = request.body.SpeechResult;
   
   try {
-    // Get ElevenLabs response using the conversation API
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/convai/conversation/text`,
-      {
-        method: "POST",
-        headers: {
-          "xi-api-key": ELEVENLABS_API_KEY,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          agent_id: ELEVENLABS_AGENT_ID,
-          user_input: speechResult,
-          conversation_history: [], // You might want to store and pass conversation history
-          audio_format: "mp3_44100_128"
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`ElevenLabs API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    // Get a signed URL for WebSocket connection
+    const signedUrl = await getSignedUrl();
     
-    if (!data.audio_url) {
-      throw new Error('No audio URL in response');
-    }
-
+    // Create WebSocket connection
+    const ws = new WebSocket(signedUrl);
+    
+    // Promise to handle the conversation
+    const conversationPromise = new Promise((resolve, reject) => {
+      let audioResponse = null;
+      
+      ws.on('open', () => {
+        console.log('WebSocket connected');
+        // Send initial configuration
+        const initialConfig = {
+          type: "conversation_initiation_client_data",
+          conversation_config_override: {
+            agent: {
+              prompt: {
+                prompt: "you are a helpful AI assistant"
+              },
+            },
+          },
+        };
+        ws.send(JSON.stringify(initialConfig));
+        
+        // Send user's speech input
+        const textMessage = {
+          type: "text",
+          text: speechResult
+        };
+        console.log('Sending text message:', textMessage);
+        ws.send(JSON.stringify(textMessage));
+      });
+      
+      ws.on('message', (data) => {
+        try {
+          const message = JSON.parse(data.toString());
+          console.log('Received message type:', message.type);
+          
+          if (message.type === 'audio' && (message.audio?.chunk || message.audio_event?.audio_base_64)) {
+            audioResponse = message.audio?.chunk || message.audio_event?.audio_base_64;
+            ws.close();
+            resolve(audioResponse);
+          }
+        } catch (error) {
+          console.error('Error processing WebSocket message:', error);
+        }
+      });
+      
+      ws.on('error', (error) => {
+        console.error('WebSocket error:', error);
+        reject(error);
+      });
+      
+      // Set a timeout
+      setTimeout(() => {
+        ws.close();
+        reject(new Error('Conversation timeout'));
+      }, 10000);
+    });
+    
+    // Wait for the audio response
+    const audioData = await conversationPromise;
+    
     const twimlResponse = `<?xml version="1.0" encoding="UTF-8"?>
       <Response>
-        <Play>${data.audio_url}</Play>
-to        <Gather input="speech" timeout="5" action="/process-speech">
+        <Play>data:audio/mpeg;base64,${audioData}</Play>
+        <Gather input="speech" timeout="5" action="/process-speech">
           <Say>Please continue...</Say>
         </Gather>
       </Response>`;
